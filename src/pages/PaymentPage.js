@@ -1,23 +1,41 @@
-import { Box, Button, Container, Divider, Grid, Paper, TextField, Typography, useTheme } from "@mui/material";
-import { useState } from "react";
+import {
+    Box,
+    Button,
+    CircularProgress,
+    Container,
+    Divider,
+    Grid,
+    Paper,
+    TextField,
+    Typography,
+    useTheme
+} from "@mui/material";
+import axios from "axios";
+import { useContext, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthProvider";
 
 const PaymentPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const theme = useTheme();
+    const { user } = useContext(AuthContext);
 
     const { selectedSeats, room, totalPrice, dateSelected } = location.state || {};
     
     const roomName = room?.name || "Sala no especificada";
     const movieName = room?.movie_name || "Película no especificada";
-    const schedule = room?.schedule || "Horario no especificado";
+    const schedule = room?.hour || "Horario no especificado";
+    
     const [formData, setFormData] = useState({
         name: "",
         cardNumber: "",
         expiryDate: "",
         cvv: ""
     });
+    
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [paymentError, setPaymentError] = useState(null);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -27,21 +45,89 @@ const PaymentPage = () => {
         }));
     };
 
-    const handlePayment = () => {
+    const handlePayment = async () => {
+        // Validar campos del formulario
         if (!formData.name || !formData.cardNumber || !formData.expiryDate || !formData.cvv) {
-            alert("Por favor, completa todos los campos del formulario.");
+            setPaymentError("Por favor, completa todos los campos del formulario.");
             return;
         }
-    
-        navigate(`/confirmar-reserva`, { 
-            state: { 
-                selectedSeats, 
-                roomName: room.name,
-                room,
-                totalPrice,
-                dateSelected,
+
+        // Validar formato de tarjeta (simplificado)
+        if (formData.cardNumber.length !== 16 || !/^\d+$/.test(formData.cardNumber)) {
+            setPaymentError("Por favor ingresa un número de tarjeta válido (16 dígitos).");
+            return;
+        }
+
+        // Validar formato de fecha (MM/AA)
+        if (!/^\d{2}\/\d{2}$/.test(formData.expiryDate)) {
+            setPaymentError("Por favor ingresa una fecha de vencimiento válida (MM/AA).");
+            return;
+        }
+
+        // Validar CVV
+        if (formData.cvv.length !== 3 || !/^\d+$/.test(formData.cvv)) {
+            setPaymentError("Por favor ingresa un CVV válido (3 dígitos).");
+            return;
+        }
+
+        setIsProcessing(true);
+        setPaymentError(null);
+
+        try {
+            // Usar el ID del usuario autenticado
+            const user_id = user?.id;
+            
+            if (!user_id) {
+                throw new Error("No se pudo identificar al usuario. Por favor inicia sesión nuevamente.");
             }
-        });
+
+            // Crear reservas para cada asiento seleccionado
+            const reservationPromises = selectedSeats.map(seat => {
+                const [seat_row, seat_column] = seat.split('-').map(Number);
+                
+                return axios.post('http://localhost:3000/api/reservations', {
+                    user_id,
+                    room_id: room.id,
+                    seat_row,
+                    seat_column,
+                    reservation_date: dateSelected
+                });
+            });
+
+            // Esperar a que todas las reservas se completen
+            await Promise.all(reservationPromises);
+            
+            // Redirigir a página de confirmación con éxito
+            navigate('/confirmar-reserva', { 
+                state: { 
+                    selectedSeats, 
+                    roomName: room.name,
+                    movieName: room.movie_name,
+                    room,
+                    totalPrice,
+                    dateSelected,
+                    success: true
+                }
+            });
+        } catch (error) {
+            console.error("Error al crear reservas:", error);
+            
+            let errorMessage = "Ocurrió un error al procesar tu reserva. Por favor intenta nuevamente.";
+            
+            if (error.response) {
+                if (error.response.status === 400) {
+                    errorMessage = error.response.data.message || "Algunos asientos ya están reservados. Por favor selecciona otros asientos.";
+                } else if (error.response.status === 500) {
+                    errorMessage = "Error del servidor. Por favor intenta más tarde.";
+                }
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            setPaymentError(errorMessage);
+        } finally {
+            setIsProcessing(false);
+        }
     };    
 
     if (!selectedSeats || selectedSeats.length === 0 || totalPrice === 0 || !room) {
@@ -53,23 +139,22 @@ const PaymentPage = () => {
                 height: '80vh'
             }}>
                 <Typography variant="h5" color="textSecondary">
-                    No hay información disponible para mostrar.
+                    No hay información de reserva disponible. Por favor selecciona asientos primero.
                 </Typography>
             </Container>
         );
     }
 
-    const formatScheduleTime = (scheduleString) => {
-        if (!scheduleString) return "Horario no especificado";
+    const formatScheduleTime = (timeString) => {
+        if (!timeString) return "Horario no especificado";
         try {
-            const date = new Date(scheduleString);
-            return date.toLocaleTimeString('es-ES', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
+            const [hours, minutes] = timeString.split(':');
+            const hour = parseInt(hours, 10);
+            const period = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            return `${displayHour}:${minutes} ${period}`;
         } catch {
-            return scheduleString;
+            return timeString;
         }
     };
 
@@ -95,6 +180,9 @@ const PaymentPage = () => {
                     mb: 2
                 }}>
                     Confirmación de Pago
+                </Typography>
+                <Typography variant="subtitle1" color="text.secondary">
+                    Completa tus datos de pago para confirmar la reserva
                 </Typography>
             </Box>
 
@@ -129,7 +217,7 @@ const PaymentPage = () => {
                                 Horario:
                             </Typography>
                             <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                {formatScheduleTime(schedule)} {/* Mostramos el horario de la sala */}
+                                {formatScheduleTime(schedule)}
                             </Typography>
                         </Box>
 
@@ -185,12 +273,24 @@ const PaymentPage = () => {
                     </Paper>
                 </Grid>
 
-                {/* Formulario de pago (se mantiene igual) */}
+                {/* Formulario de pago */}
                 <Grid item xs={12} md={6}>
                     <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
                         <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
                             Información de pago
                         </Typography>
+
+                        {paymentError && (
+                            <Box sx={{ 
+                                backgroundColor: theme.palette.error.light,
+                                color: theme.palette.error.contrastText,
+                                p: 2,
+                                mb: 3,
+                                borderRadius: 1
+                            }}>
+                                <Typography>{paymentError}</Typography>
+                            </Box>
+                        )}
 
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
@@ -201,6 +301,7 @@ const PaymentPage = () => {
                                     name="name"
                                     value={formData.name}
                                     onChange={handleInputChange}
+                                    disabled={isProcessing}
                                     sx={{ mb: 2 }}
                                 />
                             </Grid>
@@ -213,6 +314,7 @@ const PaymentPage = () => {
                                     value={formData.cardNumber}
                                     onChange={handleInputChange}
                                     inputProps={{ maxLength: 16 }}
+                                    disabled={isProcessing}
                                     sx={{ mb: 2 }}
                                 />
                             </Grid>
@@ -225,6 +327,7 @@ const PaymentPage = () => {
                                     value={formData.expiryDate}
                                     onChange={handleInputChange}
                                     placeholder="MM/AA"
+                                    disabled={isProcessing}
                                     sx={{ mb: 2 }}
                                 />
                             </Grid>
@@ -236,8 +339,9 @@ const PaymentPage = () => {
                                     name="cvv"
                                     value={formData.cvv}
                                     onChange={handleInputChange}
-                                    type="number"
+                                    type="password"
                                     inputProps={{ maxLength: 3 }}
+                                    disabled={isProcessing}
                                     sx={{ mb: 2 }}
                                 />
                             </Grid>
@@ -248,6 +352,7 @@ const PaymentPage = () => {
                             size="large"
                             fullWidth
                             onClick={handlePayment}
+                            disabled={isProcessing}
                             sx={{
                                 mt: 3,
                                 py: 2,
@@ -261,11 +366,18 @@ const PaymentPage = () => {
                                 transition: 'all 0.3s ease'
                             }}
                         >
-                            Confirmar Pago
+                            {isProcessing ? (
+                                <>
+                                    <CircularProgress size={24} sx={{ color: 'white', mr: 2 }} />
+                                    Procesando pago...
+                                </>
+                            ) : (
+                                'Confirmar Pago'
+                            )}
                         </Button>
 
                         <Typography variant="body2" color="textSecondary" sx={{ mt: 2, textAlign: 'center' }}>
-                            Tu información de pago está protegida con encriptación SSL
+                            Tus datos de pago están protegidos con encriptación SSL. No almacenamos información de tarjetas.
                         </Typography>
                     </Paper>
                 </Grid>

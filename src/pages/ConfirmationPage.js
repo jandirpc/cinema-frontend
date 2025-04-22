@@ -9,36 +9,38 @@ import {
     Typography,
     useTheme
 } from "@mui/material";
+import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { QRCodeSVG } from "qrcode.react";
 
 const ConfirmationPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const theme = useTheme();
     const qrRef = useRef(null);
-    
+
     // Extraer los datos de la reserva
-    const { 
-        selectedSeats = [], 
-        roomName = "", 
+    const {
+        selectedSeats = [],
+        roomName = "",
         room = {},
-        totalPrice = 0, 
-        dateSelected = "" 
+        totalPrice = 0,
+        dateSelected = ""
     } = location.state || {};
 
     const movieName = room.movie_name || "Película no especificada";
-    const schedule = room.schedule || "Horario no especificado";
+    const schedule = room.hour ? `1970-01-01T${room.hour}` : null;
 
     const formatTime = (dateString) => {
         if (!dateString) return "Horario no especificado";
         const date = new Date(dateString);
-        return isNaN(date) ? dateString : date.toLocaleTimeString('es-ES', {
-            hour: '2-digit',
+        if (isNaN(date)) return dateString;
+        let options = {
+            hour: 'numeric',
             minute: '2-digit',
             hour12: true
-        });
+        };
+        return date.toLocaleTimeString('en-US', options).toUpperCase();
     };
 
     const formatDate = (dateString) => {
@@ -69,7 +71,7 @@ const ConfirmationPage = () => {
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
             const img = new Image();
-            
+
             img.onload = () => {
                 canvas.width = img.width;
                 canvas.height = img.height;
@@ -80,7 +82,7 @@ const ConfirmationPage = () => {
                 downloadLink.href = pngFile;
                 downloadLink.click();
             };
-            
+
             img.src = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`;
         }
     };
@@ -94,7 +96,7 @@ const ConfirmationPage = () => {
     return (
         <Container maxWidth="md" sx={{ py: 6 }}>
             <Box sx={{ textAlign: 'center', mb: 6 }}>
-                <Typography variant="h2" sx={{ 
+                <Typography variant="h2" sx={{
                     fontWeight: 700,
                     mb: 2,
                     background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.primary.main} 100%)`,
@@ -114,21 +116,21 @@ const ConfirmationPage = () => {
                     <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
                         {movieName}
                     </Typography>
-                    
+
                     <Divider sx={{ my: 2 }} />
-                    
+
                     <Grid container spacing={3}>
                         <Grid item xs={12} md={6}>
                             <Typography variant="h6" sx={{ mb: 2 }}>
                                 Detalles de la función:
                             </Typography>
-                            
+
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                 <Box>
                                     <Typography color="text.secondary">Sala:</Typography>
                                     <Typography>{roomName}</Typography>
                                 </Box>
-                                
+
                                 <Box>
                                     <Typography color="text.secondary">Fecha:</Typography>
                                     <Typography>{formatDate(dateSelected)}</Typography>
@@ -138,7 +140,7 @@ const ConfirmationPage = () => {
                                     <Typography color="text.secondary">Horario:</Typography>
                                     <Typography>{formatTime(schedule)}</Typography>
                                 </Box>
-                                
+
                                 <Box>
                                     <Typography color="text.secondary">Asientos:</Typography>
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
@@ -158,9 +160,9 @@ const ConfirmationPage = () => {
                                 </Box>
                             </Box>
                         </Grid>
-                        
+
                         <Grid item xs={12} md={6}>
-                            <Box sx={{ 
+                            <Box sx={{
                                 backgroundColor: theme.palette.grey[100],
                                 p: 3,
                                 borderRadius: 2,
@@ -169,14 +171,14 @@ const ConfirmationPage = () => {
                                 <Typography variant="h6" sx={{ mb: 2 }}>
                                     Resumen de pago
                                 </Typography>
-                                
+
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                                     <Typography>Asientos ({selectedSeats.length}):</Typography>
                                     <Typography>${(totalPrice / selectedSeats.length).toFixed(2)} c/u</Typography>
                                 </Box>
-                                
+
                                 <Divider sx={{ my: 2 }} />
-                                
+
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                     <Typography variant="h6">Total:</Typography>
                                     <Typography variant="h4" sx={{ fontWeight: 700 }}>
@@ -193,41 +195,41 @@ const ConfirmationPage = () => {
                 <Typography variant="h6" sx={{ mb: 3 }}>
                     Muestra este código QR al llegar al cine:
                 </Typography>
-                
-                <Box ref={qrRef} sx={{ 
-                    display: 'inline-block', 
+
+                <Box ref={qrRef} sx={{
+                    display: 'inline-block',
                     mb: 3,
                     p: 2,
                     backgroundColor: 'white',
                     borderRadius: 2,
                     boxShadow: 3
                 }}>
-                    <QRCodeSVG 
-                        value={generateQRText()} 
+                    <QRCodeSVG
+                        value={generateQRText()}
                         size={200}
                         level="H"
                         includeMargin={true}
                         fgColor={theme.palette.primary.dark}
                     />
-                    <Typography variant="caption" sx={{ 
-                        display: 'block', 
-                        mt: 1, 
+                    <Typography variant="caption" sx={{
+                        display: 'block',
+                        mt: 1,
                         color: 'text.secondary',
                         fontWeight: 500
                     }}>
                         {movieName}
                     </Typography>
                 </Box>
-                
+
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-                    <Button 
+                    <Button
                         variant="contained"
                         onClick={downloadQR}
                         sx={{ mb: 3 }}
                     >
                         Descargar QR
                     </Button>
-                    <Button 
+                    <Button
                         variant="outlined"
                         onClick={goToHome}
                         sx={{ mb: 3 }}
@@ -235,7 +237,7 @@ const ConfirmationPage = () => {
                         Volver al inicio
                     </Button>
                 </Box>
-                
+
                 <Typography variant="body1" color="text.secondary">
                     Presenta este código QR en taquilla para validar tu reserva.
                 </Typography>
