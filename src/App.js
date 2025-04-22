@@ -1,6 +1,7 @@
 // src/App.js
 import { useContext } from "react";
 import { Navigate, Route, BrowserRouter as Router, Routes, useLocation } from "react-router-dom";
+import ForgotPasswordForm from "./components/ForgotPasswordForm";
 import LoginForm from "./components/LoginForm";
 import RegisterForm from "./components/RegisterForm";
 import AuthProvider, { AuthContext } from "./context/AuthProvider";
@@ -100,6 +101,12 @@ function App() {
             <PrivateRoute>
               <PaymentPage />
             </PrivateRoute>
+          } />
+
+         <Route path="/forgot-password" element={
+            <PublicRoute>
+              <ForgotPasswordForm />
+            </PublicRoute>
           } />
 
           {/* Ruta de fallback para URLs no encontradas */}

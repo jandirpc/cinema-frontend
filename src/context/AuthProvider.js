@@ -1,5 +1,5 @@
 // src/context/AuthProvider.js
-import { jwtDecode } from 'jwt-decode'; // Cambio aquí
+import { jwtDecode } from 'jwt-decode';
 import { createContext, useEffect, useState } from 'react';
 import api from '../api/axios';
 
@@ -13,7 +13,7 @@ const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        const decoded = jwtDecode(token); // Cambio aquí
+        const decoded = jwtDecode(token);
         setUser(decoded);
       } catch (error) {
         console.error("Token inválido:", error);
@@ -29,7 +29,7 @@ const AuthProvider = ({ children }) => {
       
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        const decoded = jwtDecode(response.data.token); // Cambio aquí
+        const decoded = jwtDecode(response.data.token);
         setUser(decoded);
         return true;
       }

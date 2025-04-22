@@ -42,6 +42,7 @@ const Navbar = () => {
                     <>
                         <Link to="/login" style={{ marginRight: "10px", color: "white", textDecoration: "none" }}>Iniciar Sesión</Link>
                         <Link to="/register" style={{ color: "white", textDecoration: "none" }}>Registrarse</Link>
+                        <Link to="/forgot-password" style={{ color: "white", textDecoration: "none" }}>¿Olvidaste tu contraseña?</Link>
                     </>
                 )}
             </div>
