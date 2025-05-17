@@ -162,78 +162,109 @@ const CinePage = () => {
                     </Typography>
 
                     {isAdmin && (
-                        <Button 
-    variant="contained"
-    onClick={handleOpenAddDialog}
-    sx={{ 
-        mr: 2,
-        background: 'linear-gradient(135deg,rgb(254, 253, 255) 0%, #9d50bb 100%)',
-        color: 'white',
-        fontWeight: 600,
-        borderRadius: '12px',
-        px: 3,
-        py: 1,
-        textTransform: 'none',
-        boxShadow: '0 4px 15px rgba(110, 72, 170, 0.3)',
-        '&:hover': {
-            background: 'linear-gradient(135deg, #5d3a9b 0%,rgb(191, 177, 199) 100%)',
-            boxShadow: '0 6px 20px rgba(110, 72, 170, 0.4)',
-            transform: 'translateY(-1px)'
-        },
-        transition: 'all 0.3s ease',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1
-    }}
->
-    <span style={{ fontSize: '1.2rem' }}>🎬</span>
-    {!isMobile ? "Agregar Sala" : ""}
-</Button>
+                        <>
+                            <Button 
+                                variant="contained"
+                                onClick={handleOpenAddDialog}
+                                sx={{ 
+                                    mr: 2,
+                                    background: 'linear-gradient(135deg, #6e48aa 0%, #9d50bb 100%)',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    borderRadius: '12px',
+                                    px: 3,
+                                    py: 1,
+                                    textTransform: 'none',
+                                    boxShadow: '0 4px 15px rgba(110, 72, 170, 0.3)',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #5d3a9b 0%, #7d3c98 100%)',
+                                        boxShadow: '0 6px 20px rgba(110, 72, 170, 0.4)',
+                                        transform: 'translateY(-1px)'
+                                    },
+                                    transition: 'all 0.3s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1
+                                }}
+                            >
+                                <span style={{ fontSize: '1.2rem' }}>🎬</span>
+                                {!isMobile ? "Agregar Sala" : ""}
+                            </Button>
+                            
+                            <Button 
+                                variant="contained"
+                                onClick={() => navigate('/admin/users')}
+                                sx={{ 
+                                    mr: 2,
+                                    background: 'linear-gradient(135deg, #4a69bd 0%, #1e3799 100%)',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    borderRadius: '12px',
+                                    px: 3,
+                                    py: 1,
+                                    textTransform: 'none',
+                                    boxShadow: '0 4px 15px rgba(30, 55, 153, 0.3)',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #3c56a8 0%, #162c7a 100%)',
+                                        boxShadow: '0 6px 20px rgba(30, 55, 153, 0.4)',
+                                        transform: 'translateY(-1px)'
+                                    },
+                                    transition: 'all 0.3s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1
+                                }}
+                            >
+                                <span style={{ fontSize: '1.2rem' }}>👥</span>
+                                {!isMobile ? "Gestión Usuarios" : ""}
+                            </Button>
+                        </>
                     )}
-<Button 
-    variant="contained"
-    onClick={handleLogout}
-    sx={{ 
-        backgroundColor: 'white',
-        color: '#6e48aa',
-        fontWeight: 600,
-        borderRadius: '12px',
-        px: 3,
-        textTransform: 'none',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        '&:hover': {
-            backgroundColor: '#f5f5f5',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-        },
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1
-    }}
->
-    <span style={{ fontSize: '1.2rem' }}>🚪</span>
-    {!isMobile && "Cerrar Sesión"}
-</Button>
+                    
+                    <Button 
+                        variant="contained"
+                        onClick={handleLogout}
+                        sx={{ 
+                            backgroundColor: 'white',
+                            color: '#6e48aa',
+                            fontWeight: 600,
+                            borderRadius: '12px',
+                            px: 3,
+                            textTransform: 'none',
+                            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                            '&:hover': {
+                                backgroundColor: '#f5f5f5',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                            },
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1
+                        }}
+                    >
+                        <span style={{ fontSize: '1.2rem' }}>🚪</span>
+                        {!isMobile && "Cerrar Sesión"}
+                    </Button>
                 </Toolbar>
             </AppBar>
 
             <Container maxWidth="xl" sx={{ pb: 8 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                <Typography 
-        variant="h3"  
-        gutterBottom 
-        sx={{ 
-            fontWeight: 700,
-            background: 'linear-gradient(45deg, #6e48aa 30%, #4776E6 90%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '0.03em',
-            fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-            textAlign: 'center',
-            width: '100%'
-        }}
-    >
-        NUESTRA CARTELERA
-    </Typography>
+                    <Typography 
+                        variant="h3"  
+                        gutterBottom 
+                        sx={{ 
+                            fontWeight: 700,
+                            background: 'linear-gradient(45deg, #6e48aa 30%, #4776E6 90%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            letterSpacing: '0.03em',
+                            fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                            textAlign: 'center',
+                            width: '100%'
+                        }}
+                    >
+                        NUESTRA CARTELERA
+                    </Typography>
                 </Box>
                 
                 <Grid container spacing={6}>

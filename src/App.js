@@ -10,6 +10,7 @@ import ConfirmationPage from './pages/ConfirmationPage';
 import PaymentPage from './pages/PaymentPage';
 import ReserveSeatsPage from './pages/ReserveSeatsPage';
 import RoomPage from "./pages/RoomPage";
+import UsersPage from "./pages/usersPage";
 
 // Componente PrivateRoute mejorado
 const PrivateRoute = ({ children }) => {
@@ -65,6 +66,13 @@ function App() {
             <PrivateRoute>
               <CinePage />
             </PrivateRoute>
+          } />
+          
+          {/* Rutas protegidas (requieren autenticación) */}
+         <Route path="/admin/users" element={
+         <PrivateRoute>
+         <UsersPage />
+         </PrivateRoute>
           } />
           
           <Route path="/rooms/:id" element={
