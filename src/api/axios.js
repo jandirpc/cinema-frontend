@@ -1,16 +1,16 @@
 // src/api/axios.js
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode'; // Cambio aquí
+import { jwtDecode } from 'jwt-decode';
 
 const instance = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 instance.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     try {
-      const decoded = jwtDecode(token); // Cambio aquí
+      const decoded = jwtDecode(token);
       if (decoded.exp * 1000 < Date.now()) {
         localStorage.removeItem('token');
         window.location.href = '/login';
