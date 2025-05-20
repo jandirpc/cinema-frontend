@@ -5,6 +5,7 @@ import {
     Container,
     Divider,
     Grid,
+    IconButton,
     Paper,
     TextField,
     Typography,
@@ -46,25 +47,21 @@ const PaymentPage = () => {
     };
 
     const handlePayment = async () => {
-        // Validar campos del formulario
         if (!formData.name || !formData.cardNumber || !formData.expiryDate || !formData.cvv) {
             setPaymentError("Por favor, completa todos los campos del formulario.");
             return;
         }
 
-        // Validar formato de tarjeta (simplificado)
         if (formData.cardNumber.length !== 16 || !/^\d+$/.test(formData.cardNumber)) {
             setPaymentError("Por favor ingresa un número de tarjeta válido (16 dígitos).");
             return;
         }
 
-        // Validar formato de fecha (MM/AA)
         if (!/^\d{2}\/\d{2}$/.test(formData.expiryDate)) {
             setPaymentError("Por favor ingresa una fecha de vencimiento válida (MM/AA).");
             return;
         }
 
-        // Validar CVV
         if (formData.cvv.length !== 3 || !/^\d+$/.test(formData.cvv)) {
             setPaymentError("Por favor ingresa un CVV válido (3 dígitos).");
             return;
@@ -74,14 +71,12 @@ const PaymentPage = () => {
         setPaymentError(null);
 
         try {
-            // Usar el ID del usuario autenticado
             const user_id = user?.id;
             
             if (!user_id) {
                 throw new Error("No se pudo identificar al usuario. Por favor inicia sesión nuevamente.");
             }
 
-            // Crear reservas para cada asiento seleccionado
             const reservationPromises = selectedSeats.map(seat => {
                 const [seat_row, seat_column] = seat.split('-').map(Number);
                 
@@ -94,10 +89,8 @@ const PaymentPage = () => {
                 });
             });
 
-            // Esperar a que todas las reservas se completen
             await Promise.all(reservationPromises);
             
-            // Redirigir a página de confirmación con éxito
             navigate('/confirmar-reserva', { 
                 state: { 
                     selectedSeats, 
@@ -129,6 +122,10 @@ const PaymentPage = () => {
             setIsProcessing(false);
         }
     };    
+
+    const handleBackClick = () => {
+        navigate(-1);
+    };
 
     if (!selectedSeats || selectedSeats.length === 0 || totalPrice === 0 || !room) {
         return (
@@ -169,220 +166,431 @@ const PaymentPage = () => {
     };
 
     return (
-        <Container maxWidth="md" sx={{ py: 4 }}>
-            {/* Encabezado */}
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-                <Typography variant="h3" sx={{ 
-                    fontWeight: 700,
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    mb: 2
+        <Box sx={{
+            background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.grey[100]} 100%)`,
+            minHeight: '100vh',
+            py: 6,
+            position: 'relative',
+            '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '300px',
+                background: `linear-gradient(to bottom, ${theme.palette.primary.dark} 0%, transparent 100%)`,
+                zIndex: 0,
+                opacity: 0.1
+            }
+        }}>
+            <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
+                <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    mb: 4,
+                    position: 'relative',
+                    '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: '-10px',
+                        left: 0,
+                        width: '100px',
+                        height: '4px',
+                        background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                        borderRadius: '2px'
+                    }
                 }}>
-                    Confirmación de Pago
-                </Typography>
-                <Typography variant="subtitle1" color="text.secondary">
+                    <IconButton 
+                        onClick={handleBackClick}
+                        sx={{ 
+                            mr: 2,
+                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            '&:hover': {
+                                backgroundColor: 'rgba(255,255,255,1)',
+                                transform: 'translateX(-2px)'
+                            },
+                            transition: 'all 0.3s ease'
+                        }}
+                    >
+                        <span style={{ 
+                            fontSize: '1.5rem',
+                            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent'
+                        }}>←</span>
+                    </IconButton>
+                    <Typography variant="h3" sx={{ 
+                        fontWeight: 800,
+                        letterSpacing: '0.05em',
+                        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}>
+                        Confirmación de Pago
+                    </Typography>
+                </Box>
+
+                <Typography variant="subtitle1" color="text.secondary" sx={{ 
+                    mb: 4,
+                    textAlign: 'center',
+                    fontStyle: 'italic'
+                }}>
                     Completa tus datos de pago para confirmar la reserva
                 </Typography>
-            </Box>
 
-            <Grid container spacing={4}>
-                {/* Resumen de la compra */}
-                <Grid item xs={12} md={6}>
-                    <Paper elevation={3} sx={{ p: 3, borderRadius: 3, height: '100%' }}>
-                        <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
-                            Detalles de la función
-                        </Typography>
-                        
-                        <Box sx={{ mb: 2 }}>
-                            <Typography variant="subtitle1" color="text.secondary">
-                                Película:
+                <Grid container spacing={4}>
+                    {/* Resumen de la compra */}
+                    <Grid item xs={12} md={6}>
+                        <Paper elevation={3} sx={{ 
+                            p: 4, 
+                            borderRadius: 3, 
+                            height: '100%',
+                            background: 'rgba(255, 255, 255, 0.85)',
+                            backdropFilter: 'blur(12px)',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.15)`,
+                            position: 'relative',
+                            overflow: 'hidden',
+                            '&::before': {
+                                content: '""',
+                                position: 'absolute',
+                                top: '-50%',
+                                right: '-50%',
+                                width: '200%',
+                                height: '200%',
+                                background: `radial-gradient(circle, ${theme.palette.primary.light} 0%, transparent 70%)`,
+                                opacity: 0.1,
+                                zIndex: -1
+                            }
+                        }}>
+                            <Typography variant="h5" sx={{ 
+                                mb: 3, 
+                                fontWeight: 700,
+                                color: theme.palette.primary.dark,
+                                position: 'relative',
+                                '&::after': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    bottom: '-8px',
+                                    left: 0,
+                                    width: '60px',
+                                    height: '4px',
+                                    background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                                    borderRadius: '2px'
+                                }
+                            }}>
+                                Detalles de la función
                             </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                {movieName}
-                            </Typography>
-                        </Box>
-                        
-                        <Box sx={{ mb: 2 }}>
-                            <Typography variant="subtitle1" color="text.secondary">
-                                Sala:
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                {roomName}
-                            </Typography>
-                        </Box>
+                            
+                            <Box sx={{ mb: 3 }}>
+                                <Typography variant="subtitle1" color="text.secondary">
+                                    Película:
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                    {movieName}
+                                </Typography>
+                            </Box>
+                            
+                            <Box sx={{ mb: 3 }}>
+                                <Typography variant="subtitle1" color="text.secondary">
+                                    Sala:
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                    {roomName}
+                                </Typography>
+                            </Box>
 
-                        <Box sx={{ mb: 2 }}>
-                            <Typography variant="subtitle1" color="text.secondary">
-                                Horario:
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                {formatScheduleTime(schedule)}
-                            </Typography>
-                        </Box>
+                            <Box sx={{ mb: 3 }}>
+                                <Typography variant="subtitle1" color="text.secondary">
+                                    Horario:
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                    {formatScheduleTime(schedule)}
+                                </Typography>
+                            </Box>
 
-                        <Box sx={{ mb: 2 }}>
-                            <Typography variant="subtitle1" color="text.secondary">
-                                Fecha:
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                {formatSelectedDate(dateSelected)}
-                            </Typography>
-                        </Box>
+                            <Box sx={{ mb: 3 }}>
+                                <Typography variant="subtitle1" color="text.secondary">
+                                    Fecha:
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                    {formatSelectedDate(dateSelected)}
+                                </Typography>
+                            </Box>
 
-                        <Box sx={{ mb: 3 }}>
-                            <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                                Asientos seleccionados:
-                            </Typography>
+                            <Box sx={{ mb: 4 }}>
+                                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                                    Asientos seleccionados:
+                                </Typography>
+                                <Box sx={{ 
+                                    display: 'flex', 
+                                    flexWrap: 'wrap', 
+                                    gap: 1.5,
+                                    mb: 2
+                                }}>
+                                    {selectedSeats.map((seat, index) => (
+                                        <Box key={index} sx={{
+                                            px: 2,
+                                            py: 1,
+                                            backgroundColor: theme.palette.primary.light,
+                                            color: theme.palette.primary.contrastText,
+                                            borderRadius: 1,
+                                            fontWeight: 600,
+                                            boxShadow: `0 2px 4px ${theme.palette.primary.light}`,
+                                            transition: 'all 0.2s ease',
+                                            '&:hover': {
+                                                transform: 'translateY(-2px)',
+                                                boxShadow: `0 4px 8px ${theme.palette.primary.light}`
+                                            }
+                                        }}>
+                                            {seat}
+                                        </Box>
+                                    ))}
+                                </Box>
+                            </Box>
+
+                            <Divider sx={{ 
+                                my: 3,
+                                background: `linear-gradient(90deg, transparent 0%, ${theme.palette.grey[300]} 50%, transparent 100%)`,
+                                height: '1px'
+                            }} />
+
                             <Box sx={{ 
                                 display: 'flex', 
-                                flexWrap: 'wrap', 
-                                gap: 1,
-                                mb: 2
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                mt: 3
                             }}>
-                                {selectedSeats.map((seat, index) => (
-                                    <Box key={index} sx={{
-                                        px: 2,
-                                        py: 1,
-                                        backgroundColor: theme.palette.primary.light,
-                                        color: theme.palette.primary.contrastText,
-                                        borderRadius: 1,
-                                        fontWeight: 500
-                                    }}>
-                                        {seat}
-                                    </Box>
-                                ))}
+                                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                                    Total a pagar:
+                                </Typography>
+                                <Typography variant="h4" sx={{ 
+                                    fontWeight: 800,
+                                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent'
+                                }}>
+                                    ${totalPrice.toFixed(2)}
+                                </Typography>
                             </Box>
-                        </Box>
+                        </Paper>
+                    </Grid>
 
-                        <Divider sx={{ my: 2 }} />
-
-                        <Box sx={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            mt: 3
+                    {/* Formulario de pago */}
+                    <Grid item xs={12} md={6}>
+                        <Paper elevation={3} sx={{ 
+                            p: 4, 
+                            borderRadius: 3,
+                            background: 'rgba(255, 255, 255, 0.85)',
+                            backdropFilter: 'blur(12px)',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.15)`,
+                            position: 'relative',
+                            overflow: 'hidden',
+                            '&::before': {
+                                content: '""',
+                                position: 'absolute',
+                                top: '-50%',
+                                right: '-50%',
+                                width: '200%',
+                                height: '200%',
+                                background: `radial-gradient(circle, ${theme.palette.secondary.light} 0%, transparent 70%)`,
+                                opacity: 0.1,
+                                zIndex: -1
+                            }
                         }}>
-                            <Typography variant="h6">
-                                Total a pagar:
-                            </Typography>
-                            <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                                ${totalPrice.toFixed(2)}
-                            </Typography>
-                        </Box>
-                    </Paper>
-                </Grid>
-
-                {/* Formulario de pago */}
-                <Grid item xs={12} md={6}>
-                    <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
-                        <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
-                            Información de pago
-                        </Typography>
-
-                        {paymentError && (
-                            <Box sx={{ 
-                                backgroundColor: theme.palette.error.light,
-                                color: theme.palette.error.contrastText,
-                                p: 2,
-                                mb: 3,
-                                borderRadius: 1
+                            <Typography variant="h5" sx={{ 
+                                mb: 3, 
+                                fontWeight: 700,
+                                color: theme.palette.primary.dark,
+                                position: 'relative',
+                                '&::after': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    bottom: '-8px',
+                                    left: 0,
+                                    width: '60px',
+                                    height: '4px',
+                                    background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                                    borderRadius: '2px'
+                                }
                             }}>
-                                <Typography>{paymentError}</Typography>
-                            </Box>
-                        )}
+                                Información de pago
+                            </Typography>
 
-                        <Grid container spacing={2}>
-                            <Grid item xs={12}>
-                                <TextField
-                                    fullWidth
-                                    label="Nombre en la tarjeta"
-                                    variant="outlined"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleInputChange}
-                                    disabled={isProcessing}
-                                    sx={{ mb: 2 }}
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    fullWidth
-                                    label="Número de tarjeta"
-                                    variant="outlined"
-                                    name="cardNumber"
-                                    value={formData.cardNumber}
-                                    onChange={handleInputChange}
-                                    inputProps={{ maxLength: 16 }}
-                                    disabled={isProcessing}
-                                    sx={{ mb: 2 }}
-                                />
-                            </Grid>
-                            <Grid item xs={6}>
-                                <TextField
-                                    fullWidth
-                                    label="MM/AA"
-                                    variant="outlined"
-                                    name="expiryDate"
-                                    value={formData.expiryDate}
-                                    onChange={handleInputChange}
-                                    placeholder="MM/AA"
-                                    disabled={isProcessing}
-                                    sx={{ mb: 2 }}
-                                />
-                            </Grid>
-                            <Grid item xs={6}>
-                                <TextField
-                                    fullWidth
-                                    label="CVV"
-                                    variant="outlined"
-                                    name="cvv"
-                                    value={formData.cvv}
-                                    onChange={handleInputChange}
-                                    type="password"
-                                    inputProps={{ maxLength: 3 }}
-                                    disabled={isProcessing}
-                                    sx={{ mb: 2 }}
-                                />
-                            </Grid>
-                        </Grid>
-
-                        <Button
-                            variant="contained"
-                            size="large"
-                            fullWidth
-                            onClick={handlePayment}
-                            disabled={isProcessing}
-                            sx={{
-                                mt: 3,
-                                py: 2,
-                                fontSize: '1.1rem',
-                                fontWeight: 600,
-                                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-                                '&:hover': {
-                                    transform: 'translateY(-2px)',
-                                    boxShadow: `0 4px 12px ${theme.palette.primary.light}`
-                                },
-                                transition: 'all 0.3s ease'
-                            }}
-                        >
-                            {isProcessing ? (
-                                <>
-                                    <CircularProgress size={24} sx={{ color: 'white', mr: 2 }} />
-                                    Procesando pago...
-                                </>
-                            ) : (
-                                'Confirmar Pago'
+                            {paymentError && (
+                                <Box sx={{ 
+                                    backgroundColor: theme.palette.error.light,
+                                    color: theme.palette.error.contrastText,
+                                    p: 2,
+                                    mb: 3,
+                                    borderRadius: 1,
+                                    borderLeft: `4px solid ${theme.palette.error.main}`,
+                                    boxShadow: `0 2px 8px ${theme.palette.error.light}`
+                                }}>
+                                    <Typography sx={{ fontWeight: 500 }}>{paymentError}</Typography>
+                                </Box>
                             )}
-                        </Button>
 
-                        <Typography variant="body2" color="textSecondary" sx={{ mt: 2, textAlign: 'center' }}>
-                            Tus datos de pago están protegidos con encriptación SSL. No almacenamos información de tarjetas.
-                        </Typography>
-                    </Paper>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        fullWidth
+                                        label="Nombre en la tarjeta"
+                                        variant="outlined"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        disabled={isProcessing}
+                                        sx={{ mb: 2 }}
+                                        InputProps={{
+                                            sx: {
+                                                borderRadius: '12px',
+                                                backgroundColor: 'rgba(255,255,255,0.9)',
+                                                '& fieldset': {
+                                                    borderColor: theme.palette.grey[300]
+                                                },
+                                                '&:hover fieldset': {
+                                                    borderColor: theme.palette.primary.light
+                                                }
+                                            }
+                                        }}
+                                    />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        fullWidth
+                                        label="Número de tarjeta"
+                                        variant="outlined"
+                                        name="cardNumber"
+                                        value={formData.cardNumber}
+                                        onChange={handleInputChange}
+                                        inputProps={{ maxLength: 16 }}
+                                        disabled={isProcessing}
+                                        sx={{ mb: 2 }}
+                                        InputProps={{
+                                            sx: {
+                                                borderRadius: '12px',
+                                                backgroundColor: 'rgba(255,255,255,0.9)',
+                                                '& fieldset': {
+                                                    borderColor: theme.palette.grey[300]
+                                                },
+                                                '&:hover fieldset': {
+                                                    borderColor: theme.palette.primary.light
+                                                }
+                                            }
+                                        }}
+                                    />
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <TextField
+                                        fullWidth
+                                        label="MM/AA"
+                                        variant="outlined"
+                                        name="expiryDate"
+                                        value={formData.expiryDate}
+                                        onChange={handleInputChange}
+                                        placeholder="MM/AA"
+                                        disabled={isProcessing}
+                                        sx={{ mb: 2 }}
+                                        InputProps={{
+                                            sx: {
+                                                borderRadius: '12px',
+                                                backgroundColor: 'rgba(255,255,255,0.9)',
+                                                '& fieldset': {
+                                                    borderColor: theme.palette.grey[300]
+                                                },
+                                                '&:hover fieldset': {
+                                                    borderColor: theme.palette.primary.light
+                                                }
+                                            }
+                                        }}
+                                    />
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <TextField
+                                        fullWidth
+                                        label="CVV"
+                                        variant="outlined"
+                                        name="cvv"
+                                        value={formData.cvv}
+                                        onChange={handleInputChange}
+                                        type="password"
+                                        inputProps={{ maxLength: 3 }}
+                                        disabled={isProcessing}
+                                        sx={{ mb: 2 }}
+                                        InputProps={{
+                                            sx: {
+                                                borderRadius: '12px',
+                                                backgroundColor: 'rgba(255,255,255,0.9)',
+                                                '& fieldset': {
+                                                    borderColor: theme.palette.grey[300]
+                                                },
+                                                '&:hover fieldset': {
+                                                    borderColor: theme.palette.primary.light
+                                                }
+                                            }
+                                        }}
+                                    />
+                                </Grid>
+                            </Grid>
+
+                            <Button
+                                variant="contained"
+                                size="large"
+                                fullWidth
+                                onClick={handlePayment}
+                                disabled={isProcessing}
+                                sx={{
+                                    mt: 3,
+                                    py: 2,
+                                    fontSize: '1.1rem',
+                                    fontWeight: 700,
+                                    borderRadius: '12px',
+                                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                                    boxShadow: `0 4px 6px ${theme.palette.primary.light}`,
+                                    letterSpacing: '0.05em',
+                                    '&:hover': {
+                                        transform: 'translateY(-3px)',
+                                        boxShadow: `0 8px 15px ${theme.palette.primary.light}`,
+                                        background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`
+                                    },
+                                    '&:active': {
+                                        transform: 'translateY(0)'
+                                    },
+                                    '&:disabled': {
+                                        background: theme.palette.grey[400],
+                                        transform: 'none',
+                                        boxShadow: 'none'
+                                    },
+                                    transition: 'all 0.3s ease'
+                                }}
+                            >
+                                {isProcessing ? (
+                                    <>
+                                        <CircularProgress size={24} sx={{ color: 'white', mr: 2 }} />
+                                        Procesando pago...
+                                    </>
+                                ) : (
+                                    'CONFIRMAR PAGO →'
+                                )}
+                            </Button>
+
+                            <Typography variant="body2" color="text.secondary" sx={{ 
+                                mt: 3, 
+                                textAlign: 'center',
+                                fontStyle: 'italic',
+                                opacity: 0.8
+                            }}>
+                                Tus datos de pago están protegidos con encriptación SSL. No almacenamos información de tarjetas.
+                            </Typography>
+                        </Paper>
+                    </Grid>
                 </Grid>
-            </Grid>
-        </Container>
+            </Container>
+        </Box>
     );
 };
 

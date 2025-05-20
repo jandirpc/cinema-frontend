@@ -1,9 +1,8 @@
-// src/api/axios.js
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: 'http://localhost:3000/api',
 });
 
 instance.interceptors.request.use((config) => {

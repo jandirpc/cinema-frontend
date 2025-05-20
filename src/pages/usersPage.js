@@ -16,20 +16,21 @@ import {
     Grid,
     IconButton,
     InputLabel,
+    Menu,
     MenuItem,
     Select,
     Snackbar,
     TextField,
     Toolbar,
-    Typography,
-    useMediaQuery,
-    useTheme
+    Typography
 } from "@mui/material";
+import Chip from '@mui/material/Chip';
 import { blue, deepPurple, green, orange, red } from '@mui/material/colors';
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthProvider";
+
 
 const UsersPage = () => {
     const [users, setUsers] = useState([]);
@@ -39,10 +40,11 @@ const UsersPage = () => {
     const [userToDelete, setUserToDelete] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const [errors, setErrors] = useState({});
+    const [anchorEl, setAnchorEl] = useState(null);
     const navigate = useNavigate();
     const { logout } = useContext(AuthContext);
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const openMenu = Boolean(anchorEl);
+
     const colors = {
         primary: '#4a69bd',
         primaryLight: '#6a89cc',
@@ -51,7 +53,10 @@ const UsersPage = () => {
         textOnPrimary: '#ffffff',
         textOnSecondary: '#4a148c',
         error: '#d32f2f',
-        background: '#f8f9fa'
+        background: '#f8f9fa',
+        glassBackground: 'rgba(255, 255, 255, 0.85)',
+        glassBorder: '1px solid rgba(255, 255, 255, 0.3)',
+        glassShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)'
     };
 
     useEffect(() => {
@@ -88,7 +93,16 @@ const UsersPage = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    const handleMenuClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
     const handleLogout = () => {
+        handleMenuClose();
         logout();
         navigate('/login');
     };
@@ -207,7 +221,7 @@ const UsersPage = () => {
         '&:hover': {
             background: `linear-gradient(135deg, ${colors.primaryDark} 0%, ${colors.primary} 100%)`,
             boxShadow: '0 6px 20px rgba(74, 105, 189, 0.4)',
-            transform: 'translateY(-1px)'
+            transform: 'translateY(-2px)'
         },
         transition: 'all 0.3s ease',
         display: 'flex',
@@ -226,8 +240,10 @@ const UsersPage = () => {
         boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
         '&:hover': {
             backgroundColor: '#e1bee7',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            transform: 'translateY(-1px)'
         },
+        transition: 'all 0.3s ease',
         display: 'flex',
         alignItems: 'center',
         gap: 1
@@ -235,13 +251,27 @@ const UsersPage = () => {
 
     return (
         <Box sx={{ 
-            backgroundColor: colors.background,
-            minHeight: '100vh'
+            background: `linear-gradient(135deg, ${colors.background} 0%, #e2e6ea 100%)`,
+            minHeight: '100vh',
+            position: 'relative',
+            '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '300px',
+                background: `linear-gradient(to bottom, ${colors.primaryDark} 0%, transparent 100%)`,
+                zIndex: 0,
+                opacity: 0.1
+            }
         }}>
             <AppBar position="static" elevation={0} sx={{ 
                 background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)`,
                 mb: 6,
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                position: 'relative',
+                zIndex: 1
             }}>
                 <Toolbar>
                     <Typography variant="h6" component="div" sx={{ 
@@ -250,43 +280,117 @@ const UsersPage = () => {
                         alignItems: 'center',
                         gap: 1,
                         color: 'white',
-                        fontWeight: 600,
-                        fontFamily: '"Roboto Condensed", sans-serif'
+                        fontWeight: 700,
+                        fontFamily: '"Roboto Condensed", sans-serif',
+                        letterSpacing: '0.05em',
+                        textShadow: '0 2px 4px rgba(0,0,0,0.1)'
                     }}>
                         <span style={{ fontSize: '1.8rem' }}>👥</span>
                         GESTIÓN DE USUARIOS
                     </Typography>
 
-                    <Button 
-                        variant="contained"
-                        onClick={() => navigate('/')}
-                        sx={primaryButtonStyle}
-                    >
-                        <span style={{ fontSize: '1.2rem' }}>🎬</span>
-                        {!isMobile ? "Volver a Salas" : ""}
-                    </Button>
-
-                    <Button 
-                        variant="contained"
-                        onClick={handleLogout}
+                    <IconButton
+                        onClick={handleMenuClick}
                         sx={{
-                            ...secondaryButtonStyle,
-                            ml: 2
+                            color: 'white',
+                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                            '&:hover': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                                transform: 'rotate(90deg)'
+                            },
+                            borderRadius: '12px',
+                            p: 1.5,
+                            mr: 1,
+                            transition: 'all 0.3s ease'
                         }}
                     >
-                        <span style={{ fontSize: '1.2rem' }}>🚪</span>
-                        {!isMobile && "Cerrar Sesión"}
-                    </Button>
+                        <span style={{ fontSize: '1.2rem' }}>⋮</span>
+                    </IconButton>
+
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={openMenu}
+                        onClose={handleMenuClose}
+                        PaperProps={{
+                            elevation: 0,
+                            sx: {
+                                overflow: 'visible',
+                                filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                                mt: 1.5,
+                                borderRadius: '12px',
+                                minWidth: 200,
+                                background: colors.glassBackground,
+                                backdropFilter: 'blur(12px)',
+                                border: colors.glassBorder,
+                                '&:before': {
+                                    content: '""',
+                                    display: 'block',
+                                    position: 'absolute',
+                                    top: 0,
+                                    right: 14,
+                                    width: 10,
+                                    height: 10,
+                                    bgcolor: colors.glassBackground,
+                                    transform: 'translateY(-50%) rotate(45deg)',
+                                    zIndex: 0,
+                                },
+                            },
+                        }}
+                        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                    >
+                        <MenuItem 
+                            onClick={() => { handleMenuClose(); navigate('/'); }} 
+                            sx={{ 
+                                py: 1.5,
+                                '&:hover': {
+                                    background: 'rgba(0,0,0,0.05)'
+                                }
+                            }}
+                        >
+                            <span style={{ marginRight: '10px', fontSize: '1.2rem' }}>🎬</span>
+                            Volver a Salas
+                        </MenuItem>
+                        <MenuItem 
+                            onClick={handleLogout} 
+                            sx={{ 
+                                py: 1.5,
+                                '&:hover': {
+                                    background: 'rgba(0,0,0,0.05)'
+                                }
+                            }}
+                        >
+                            <span style={{ marginRight: '10px', fontSize: '1.2rem' }}>🚪</span>
+                            Cerrar Sesión
+                        </MenuItem>
+                    </Menu>
                 </Toolbar>
             </AppBar>
 
-            <Container maxWidth="xl" sx={{ pb: 8 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+            <Container maxWidth="xl" sx={{ pb: 8, position: 'relative', zIndex: 1 }}>
+                <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    mb: 6,
+                    position: 'relative',
+                    '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: '-15px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '150px',
+                        height: '4px',
+                        background: `linear-gradient(90deg, transparent 0%, ${colors.primary} 50%, transparent 100%)`,
+                        borderRadius: '2px'
+                    }
+                }}>
                     <Typography 
                         variant="h3"  
                         gutterBottom 
                         sx={{ 
-                            fontWeight: 700,
+                            fontWeight: 800,
                             background: `linear-gradient(45deg, ${colors.primary} 30%, ${colors.primaryLight} 90%)`,
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
@@ -294,21 +398,49 @@ const UsersPage = () => {
                             fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
                             textAlign: 'center',
                             width: '100%',
-                            fontFamily: '"Roboto Condensed", sans-serif'
+                            fontFamily: '"Roboto Condensed", sans-serif',
+                            textShadow: '0 2px 4px rgba(0,0,0,0.1)'
                         }}
                     >
                         ADMINISTRACIÓN DE USUARIOS
                     </Typography>
                 </Box>
                 
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 4 }}>
+                <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'flex-end', 
+                    mb: 6,
+                    position: 'relative'
+                }}>
                     <Button 
                         variant="contained"
                         onClick={handleOpenAddDialog}
-                        sx={primaryButtonStyle}
+                        sx={{
+                            ...primaryButtonStyle,
+                            '&:hover': {
+                                ...primaryButtonStyle['&:hover'],
+                                '&::before': {
+                                    opacity: 1
+                                }
+                            },
+                            position: 'relative',
+                            overflow: 'hidden',
+                            '&::before': {
+                                content: '""',
+                                position: 'absolute',
+                                top: '-50%',
+                                left: '-50%',
+                                width: '200%',
+                                height: '200%',
+                                background: `linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent)`,
+                                transform: 'rotate(45deg)',
+                                transition: 'all 0.5s ease',
+                                opacity: 0
+                            }
+                        }}
                     >
-                        <span style={{ fontSize: '1.2rem' }}>➕</span>
-                        Agregar Nuevo Usuario
+                        <span style={{ fontSize: '1.2rem', zIndex: 1 }}>➕</span>
+                        <span style={{ zIndex: 1 }}>Agregar Nuevo Usuario</span>
                     </Button>
                 </Box>
                 
@@ -320,28 +452,62 @@ const UsersPage = () => {
                                 display: 'flex',
                                 flexDirection: 'column',
                                 transition: 'all 0.3s ease',
-                                borderRadius: '12px',
+                                borderRadius: '16px',
                                 overflow: 'hidden',
-                                boxShadow: '0 6px 15px rgba(0,0,0,0.1)',
+                                boxShadow: '0 8px 20px rgba(0,0,0,0.12)',
+                                background: colors.glassBackground,
+                                backdropFilter: 'blur(12px)',
+                                border: colors.glassBorder,
+                                position: 'relative',
                                 '&:hover': {
                                     transform: 'translateY(-8px)',
-                                    boxShadow: '0 12px 20px rgba(0,0,0,0.15)'
+                                    boxShadow: `0 15px 30px rgba(0,0,0,0.2), 0 0 0 2px ${colors.primary}20`,
+                                    '&::before': {
+                                        opacity: 1
+                                    }
+                                },
+                                '&::before': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    background: `linear-gradient(135deg, ${colors.primary}10 0%, ${colors.secondary}10 100%)`,
+                                    opacity: 0,
+                                    transition: 'opacity 0.3s ease',
+                                    zIndex: -1
                                 }
                             }}>
                                 <Box sx={{ 
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
-                                    p: 3,
-                                    background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%)'
+                                    p: 4,
+                                    background: `linear-gradient(135deg, ${colors.primary}10 0%, ${colors.secondary}10 100%)`,
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    '&::after': {
+                                        content: '""',
+                                        position: 'absolute',
+                                        top: '-50%',
+                                        right: '-50%',
+                                        width: '200%',
+                                        height: '200%',
+                                        background: `radial-gradient(circle, ${colors.primaryLight}20 0%, transparent 70%)`,
+                                        opacity: 0.3,
+                                        zIndex: -1
+                                    }
                                 }}>
                                     <Avatar 
                                         sx={{ 
-                                            width: 80, 
-                                            height: 80, 
-                                            fontSize: '2rem',
+                                            width: 90, 
+                                            height: 90, 
+                                            fontSize: '2.5rem',
                                             bgcolor: getAvatarColor(user.username),
-                                            mb: 2
+                                            mb: 3,
+                                            boxShadow: `0 4px 12px ${getAvatarColor(user.username)}80`,
+                                            border: `2px solid white`
                                         }}
                                     >
                                         {user.username.charAt(0).toUpperCase()}
@@ -351,9 +517,21 @@ const UsersPage = () => {
                                         component="h2" 
                                         sx={{ 
                                             fontWeight: 700,
-                                            color: '#2d3436',
+                                            color: colors.primaryDark,
                                             textAlign: 'center',
-                                            fontFamily: '"Roboto Condensed", sans-serif'
+                                            fontFamily: '"Roboto Condensed", sans-serif',
+                                            position: 'relative',
+                                            '&::after': {
+                                                content: '""',
+                                                position: 'absolute',
+                                                bottom: '-8px',
+                                                left: '50%',
+                                                transform: 'translateX(-50%)',
+                                                width: '40px',
+                                                height: '3px',
+                                                background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)`,
+                                                borderRadius: '2px'
+                                            }
                                         }}
                                     >
                                         {user.username}
@@ -362,7 +540,8 @@ const UsersPage = () => {
                                         variant="subtitle1" 
                                         sx={{ 
                                             color: '#636e72',
-                                            textAlign: 'center'
+                                            textAlign: 'center',
+                                            mt: 1
                                         }}
                                     >
                                         {user.email}
@@ -371,27 +550,36 @@ const UsersPage = () => {
                                 
                                 <CardContent sx={{ 
                                     flexGrow: 1,
-                                    p: 3
+                                    p: 3,
+                                    background: 'rgba(255,255,255,0.7)'
                                 }}>
                                     <Box sx={{ 
                                         display: 'flex',
                                         justifyContent: 'space-between',
-                                        mb: 2
+                                        mb: 2,
+                                        alignItems: 'center'
                                     }}>
-                                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, color: colors.primaryDark }}>
                                             Rol:
                                         </Typography>
-                                        <Typography variant="body1">
-                                            {user.role === 'admin' ? 'Administrador' : 'Cliente'}
-                                        </Typography>
+                                        <Chip 
+                                            label={user.role === 'admin' ? 'Administrador' : 'Cliente'} 
+                                            size="small"
+                                            sx={{ 
+                                                fontWeight: 600,
+                                                backgroundColor: user.role === 'admin' ? `${colors.primary}20` : `${colors.secondary}80`,
+                                                color: user.role === 'admin' ? colors.primaryDark : colors.textOnSecondary
+                                            }}
+                                        />
                                     </Box>
                                     
                                     <Box sx={{ 
                                         display: 'flex',
                                         justifyContent: 'space-between',
-                                        mb: 2
+                                        mb: 2,
+                                        alignItems: 'center'
                                     }}>
-                                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, color: colors.primaryDark }}>
                                             Estado:
                                         </Typography>
                                         <Box sx={{ 
@@ -401,14 +589,17 @@ const UsersPage = () => {
                                             px: 1.5,
                                             py: 0.5,
                                             backgroundColor: getStatusColor(user.status) + '20',
-                                            color: getStatusColor(user.status)
+                                            color: getStatusColor(user.status),
+                                            boxShadow: `0 2px 4px ${getStatusColor(user.status)}20`,
+                                            border: `1px solid ${getStatusColor(user.status)}30`
                                         }}>
                                             <span style={{ 
-                                                width: '8px',
-                                                height: '8px',
+                                                width: '10px',
+                                                height: '10px',
                                                 borderRadius: '50%',
                                                 backgroundColor: getStatusColor(user.status),
-                                                marginRight: '8px'
+                                                marginRight: '8px',
+                                                boxShadow: `0 0 6px ${getStatusColor(user.status)}`
                                             }}></span>
                                             {user.status === 'active' ? 'Activo' : 'Inactivo'}
                                         </Box>
@@ -416,12 +607,16 @@ const UsersPage = () => {
                                     
                                     <Box sx={{ 
                                         display: 'flex',
-                                        justifyContent: 'space-between'
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
                                     }}>
-                                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                        <Typography variant="body1" sx={{ fontWeight: 600, color: colors.primaryDark }}>
                                             ID:
                                         </Typography>
-                                        <Typography variant="body1">
+                                        <Typography variant="body1" sx={{ 
+                                            fontFamily: 'monospace',
+                                            color: '#636e72'
+                                        }}>
                                             {user.id}
                                         </Typography>
                                     </Box>
@@ -430,16 +625,22 @@ const UsersPage = () => {
                                 <CardActions sx={{ 
                                     p: 2,
                                     justifyContent: 'flex-end',
-                                    borderTop: '1px solid #eee'
+                                    borderTop: '1px solid rgba(0,0,0,0.05)',
+                                    background: 'rgba(255,255,255,0.5)'
                                 }}>
                                     <IconButton 
                                         aria-label="edit" 
                                         onClick={() => handleOpenEditDialog(user)}
                                         sx={{ 
                                             color: colors.primary,
+                                            backgroundColor: `${colors.primary}10`,
                                             '&:hover': {
-                                                backgroundColor: `${colors.secondary}80`
-                                            }
+                                                backgroundColor: `${colors.primary}20`,
+                                                transform: 'scale(1.1)'
+                                            },
+                                            transition: 'all 0.2s ease',
+                                            borderRadius: '10px',
+                                            p: 1.5
                                         }}
                                     >
                                         <span style={{ fontSize: '1.2rem' }}>✏️</span>
@@ -449,9 +650,14 @@ const UsersPage = () => {
                                         onClick={() => handleOpenDeleteDialog(user)}
                                         sx={{ 
                                             color: colors.error,
+                                            backgroundColor: `${colors.error}10`,
                                             '&:hover': {
-                                                backgroundColor: '#ffcdd280'
-                                            }
+                                                backgroundColor: `${colors.error}20`,
+                                                transform: 'scale(1.1)'
+                                            },
+                                            transition: 'all 0.2s ease',
+                                            borderRadius: '10px',
+                                            p: 1.5
                                         }}
                                     >
                                         <span style={{ fontSize: '1.2rem' }}>🗑️</span>
@@ -472,26 +678,48 @@ const UsersPage = () => {
                 PaperProps={{
                     sx: {
                         borderRadius: '16px',
-                        background: 'linear-gradient(to bottom, #ffffff, #f8f9fa)',
-                        boxShadow: `0 10px 30px ${colors.primary}20`
+                        background: colors.glassBackground,
+                        backdropFilter: 'blur(12px)',
+                        border: colors.glassBorder,
+                        boxShadow: colors.glassShadow,
+                        overflow: 'hidden',
+                        '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: '5px',
+                            background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)`
+                        }
                     }
                 }}
             >
                 <DialogTitle sx={{
                     background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)`,
                     color: 'white',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     fontSize: '1.5rem',
-                    py: 2,
-                    px: 3,
-                    borderTopLeftRadius: '16px',
-                    borderTopRightRadius: '16px',
-                    fontFamily: '"Roboto Condensed", sans-serif'
+                    py: 3,
+                    px: 4,
+                    fontFamily: '"Roboto Condensed", sans-serif',
+                    position: 'relative',
+                    '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: 0,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '80px',
+                        height: '4px',
+                        background: 'rgba(255,255,255,0.5)',
+                        borderRadius: '2px'
+                    }
                 }}>
                     {currentUser?.id ? '✏️ Editar Usuario' : '➕ Agregar Nuevo Usuario'}
                 </DialogTitle>
                 
-                <DialogContent sx={{ p: 3 }}>
+                <DialogContent sx={{ p: 4 }}>
                     <Grid container spacing={3} sx={{ mt: 1 }}>
                         <Grid item xs={12} sm={6}>
                             <TextField
@@ -620,19 +848,28 @@ const UsersPage = () => {
                 
                 <DialogActions sx={{ 
                     p: 3,
-                    borderTop: '1px solid #eee',
-                    justifyContent: 'space-between'
+                    borderTop: '1px solid rgba(0,0,0,0.05)',
+                    justifyContent: 'space-between',
+                    background: 'rgba(255,255,255,0.5)'
                 }}>
                     <Button 
                         onClick={handleCloseDialog}
-                        sx={secondaryButtonStyle}
+                        sx={{
+                            ...secondaryButtonStyle,
+                            px: 4,
+                            py: 1.2
+                        }}
                     >
                         Cancelar
                     </Button>
                     <Button 
                         onClick={handleSubmit} 
                         variant="contained"
-                        sx={primaryButtonStyle}
+                        sx={{
+                            ...primaryButtonStyle,
+                            px: 4,
+                            py: 1.2
+                        }}
                     >
                         {currentUser?.id ? 'Actualizar Usuario' : 'Crear Usuario'}
                     </Button>
@@ -646,32 +883,73 @@ const UsersPage = () => {
                 PaperProps={{
                     sx: {
                         borderRadius: '16px',
-                        padding: '20px',
-                        background: 'linear-gradient(to bottom, #ffffff, #f8f9fa)'
+                        padding: '0',
+                        background: colors.glassBackground,
+                        backdropFilter: 'blur(12px)',
+                        border: colors.glassBorder,
+                        boxShadow: colors.glassShadow,
+                        overflow: 'hidden',
+                        maxWidth: '500px'
                     }
                 }}
             >
                 <DialogTitle sx={{
-                    color: '#2d3436',
-                    fontWeight: 600,
+                    color: 'white',
+                    fontWeight: 700,
                     fontSize: '1.3rem',
                     textAlign: 'center',
-                    fontFamily: '"Roboto Condensed", sans-serif'
+                    fontFamily: '"Roboto Condensed", sans-serif',
+                    background: `linear-gradient(135deg, ${colors.error} 0%, ${red[700]} 100%)`,
+                    py: 3,
+                    px: 4,
+                    position: 'relative',
+                    '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: 0,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '80px',
+                        height: '4px',
+                        background: 'rgba(255,255,255,0.3)',
+                        borderRadius: '2px'
+                    }
                 }}>
                     🗑️ Confirmar Eliminación
                 </DialogTitle>
-                <DialogContent>
-                    <Typography sx={{ textAlign: 'center', color: '#636e72', mb: 2 }}>
+                <DialogContent sx={{ p: 4 }}>
+                    <Typography sx={{ 
+                        textAlign: 'center', 
+                        color: colors.primaryDark, 
+                        mb: 2,
+                        fontWeight: 500,
+                        fontSize: '1.1rem'
+                    }}>
                         ¿Estás seguro que deseas eliminar al usuario "{userToDelete?.username}"?
                     </Typography>
-                    <Typography sx={{ textAlign: 'center', color: colors.error, fontWeight: 500 }}>
+                    <Typography sx={{ 
+                        textAlign: 'center', 
+                        color: colors.error, 
+                        fontWeight: 600,
+                        fontSize: '1rem'
+                    }}>
                         Esta acción no se puede deshacer
                     </Typography>
                 </DialogContent>
-                <DialogActions sx={{ justifyContent: 'center', gap: 2 }}>
+                <DialogActions sx={{ 
+                    justifyContent: 'center', 
+                    gap: 3,
+                    p: 3,
+                    borderTop: '1px solid rgba(0,0,0,0.05)',
+                    background: 'rgba(255,255,255,0.5)'
+                }}>
                     <Button 
                         onClick={handleCloseDeleteDialog}
-                        sx={secondaryButtonStyle}
+                        sx={{
+                            ...secondaryButtonStyle,
+                            px: 4,
+                            py: 1.2
+                        }}
                     >
                         Cancelar
                     </Button>
@@ -684,10 +962,14 @@ const UsersPage = () => {
                             fontWeight: 600,
                             borderRadius: '12px',
                             px: 4,
-                            py: 1,
+                            py: 1.2,
+                            textTransform: 'none',
                             '&:hover': {
-                                backgroundColor: '#b71c1c'
-                            }
+                                backgroundColor: '#b71c1c',
+                                transform: 'translateY(-2px)',
+                                boxShadow: `0 4px 12px ${colors.error}80`
+                            },
+                            transition: 'all 0.3s ease'
                         }}
                     >
                         Eliminar
@@ -708,10 +990,23 @@ const UsersPage = () => {
                     sx={{ 
                         width: '100%',
                         borderRadius: '12px',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
                         alignItems: 'center',
                         fontSize: '0.95rem',
-                        fontFamily: '"Roboto Condensed", sans-serif'
+                        fontFamily: '"Roboto Condensed", sans-serif',
+                        background: colors.glassBackground,
+                        backdropFilter: 'blur(12px)',
+                        border: colors.glassBorder,
+                        color: snackbar.severity === 'error' ? colors.error : colors.primaryDark,
+                        '& .MuiAlert-icon': {
+                            fontSize: '1.5rem'
+                        }
+                    }}
+                    iconMapping={{
+                        success: <span style={{ fontSize: '1.2rem' }}>✅</span>,
+                        error: <span style={{ fontSize: '1.2rem' }}>❌</span>,
+                        warning: <span style={{ fontSize: '1.2rem' }}>⚠️</span>,
+                        info: <span style={{ fontSize: '1.2rem' }}>ℹ️</span>
                     }}
                 >
                     {snackbar.message}

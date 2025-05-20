@@ -1,6 +1,6 @@
 import { Button, Container, Typography } from '@mui/material';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const Home = () => {
   const [message, setMessage] = useState('');

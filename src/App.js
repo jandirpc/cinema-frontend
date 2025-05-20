@@ -12,20 +12,17 @@ import ReserveSeatsPage from './pages/ReserveSeatsPage';
 import RoomPage from "./pages/RoomPage";
 import UsersPage from "./pages/usersPage";
 
-// Componente PrivateRoute mejorado
 const PrivateRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
   const location = useLocation();
 
   if (!user) {
-    // Guardamos la ubicación a la que intentaban acceder para redirigir después del login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;
 };
 
-// Componente para redirigir usuarios logueados lejos del login/register
 const PublicRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
   
@@ -41,26 +38,6 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Rutas públicas (solo accesibles sin autenticación) */}
-          <Route path="/login" element={
-            <PublicRoute>
-              <LoginForm />
-            </PublicRoute>
-          } />
-          
-          <Route path="/register" element={
-            <PublicRoute>
-              <RegisterForm />
-            </PublicRoute>
-          } />
-
-          {/* Ruta raíz: redirige a login o cine según autenticación */}
-          <Route path="/" element={
-            <PublicRoute>
-              <Navigate to="/login" replace />
-            </PublicRoute>
-          } />
-
           {/* Rutas protegidas (requieren autenticación) */}
           <Route path="/cine" element={
             <PrivateRoute>
@@ -109,6 +86,26 @@ function App() {
             <PrivateRoute>
               <PaymentPage />
             </PrivateRoute>
+          } />
+
+         {/* Rutas públicas (solo accesibles sin autenticación) */}
+          <Route path="/login" element={
+            <PublicRoute>
+              <LoginForm />
+            </PublicRoute>
+          } />
+          
+          <Route path="/register" element={
+            <PublicRoute>
+              <RegisterForm />
+            </PublicRoute>
+          } />
+
+          {/* Ruta raíz: redirige a login o cine según autenticación */}
+          <Route path="/" element={
+            <PublicRoute>
+              <Navigate to="/login" replace />
+            </PublicRoute>
           } />
 
          <Route path="/forgot-password" element={
