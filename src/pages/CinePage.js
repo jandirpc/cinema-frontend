@@ -37,6 +37,7 @@ const CinePage = () => {
     const [roomToDelete, setRoomToDelete] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const [anchorEl, setAnchorEl] = useState(null);
+    const [hasReservations, setHasReservations] = useState(false);
     const navigate = useNavigate();
     const { logout, user } = useContext(AuthContext);
     const theme = useTheme();
@@ -56,6 +57,18 @@ const CinePage = () => {
                 console.error("Error al cargar las salas:", error);
                 setSnackbar({ open: true, message: 'Error al cargar salas', severity: 'error' });
             });
+    };
+
+    const checkRoomReservations = async (roomId) => {
+        try {
+            const response = await axios.get("http://localhost:3000/api/reservations", {
+                params: { room_id: roomId }
+            });
+            return response.data.length > 0;
+        } catch (error) {
+            console.error("Error al verificar reservas:", error);
+            return false;
+        }
     };
 
     const handleMenuClick = (event) => {
@@ -85,6 +98,7 @@ const CinePage = () => {
             num_rows: '',
             num_columns: ''
         });
+        setHasReservations(false);
         setOpenDialog(true);
     };
 
@@ -93,7 +107,9 @@ const CinePage = () => {
         navigate('/admin/users');
     };
 
-    const handleOpenEditDialog = (room) => {
+    const handleOpenEditDialog = async (room) => {
+        const reservationsExist = await checkRoomReservations(room.id);
+        setHasReservations(reservationsExist);
         setCurrentRoom(room);
         setOpenDialog(true);
     };
@@ -106,6 +122,7 @@ const CinePage = () => {
     const handleCloseDialog = () => {
         setOpenDialog(false);
         setCurrentRoom(null);
+        setHasReservations(false);
     };
 
     const handleCloseDeleteDialog = () => {
@@ -804,6 +821,8 @@ const CinePage = () => {
                                 value={currentRoom?.num_rows || ''}
                                 onChange={handleInputChange}
                                 variant="outlined"
+                                disabled={hasReservations}
+                                helperText={hasReservations ? "No se puede modificar porque hay reservas existentes" : ""}
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
                                         borderRadius: '12px',
@@ -826,6 +845,8 @@ const CinePage = () => {
                                 value={currentRoom?.num_columns || ''}
                                 onChange={handleInputChange}
                                 variant="outlined"
+                                disabled={hasReservations}
+                                helperText={hasReservations ? "No se puede modificar porque hay reservas existentes" : ""}
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
                                         borderRadius: '12px',

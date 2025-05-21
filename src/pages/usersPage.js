@@ -31,7 +31,6 @@ import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthProvider";
 
-
 const UsersPage = () => {
     const [users, setUsers] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
